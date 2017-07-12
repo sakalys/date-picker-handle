@@ -5,6 +5,8 @@ var from = picker.querySelector('.skl-from'),
 
 var screenSize = screen.height;
 
+var realChange = 0;
+
 console.log('Screen height', screenSize);
 
 var to = picker.querySelector('.skl-to'),
@@ -64,6 +66,11 @@ toHandle.addEventListener('mouseup', toUpCb);
 toHandle.addEventListener('touchend', toUpCb);
 toHandle.addEventListener('touchcancel', toUpCb);
 
+function applyChange(date, change) {
+  date.setTime(date.getTime() + (change * 1000 * 60 * 60 * 24));
+
+  return date;
+}
 var moveListener = function (e) {
 
   var pos;
@@ -92,17 +99,14 @@ var moveListener = function (e) {
 
   var date = new Date();
 
-  var time = date.getTime();
-
-  var realChange = (change / 2);
+  realChange = (change / 2);
 
   if (realChange > 0) {
     realChange = Math.floor(realChange);
   } else {
     realChange = Math.ceil(realChange);
   }
-
-  date.setTime(time + (realChange * 1000 * 60 * 60 * 24));
+  applyChange(date, realChange);
 
   out.innerHTML = formatDate(date);
 };
@@ -117,7 +121,7 @@ function paddy(subject, length, padChar) {
 }
 
 var enableScroll = function (e) {
-  out.innerHTML = formatDate(new Date());
+  out.innerHTML = formatDate(applyChange(new Date(), realChange));
 
   lastPos = e.screenY;
 
