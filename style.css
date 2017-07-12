@@ -1,6 +1,10 @@
 .sakalys-date-range {
   user-select: none; }
   .sakalys-date-range .handle {
-    cursor: ns-resize; }
-
-/*# sourceMappingURL=style.css.map */
+    cursor: ns-resize;
+    display: inline-block;
+    padding: 1em 3em;
+    border: 1px solid transparent;
+    border-radius: .3em; }
+    .sakalys-date-range .handle:hover {
+      border-color: lightgray; }
