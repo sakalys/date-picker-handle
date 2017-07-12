@@ -99,7 +99,7 @@ var moveListener = function (e) {
 
   var date = new Date();
 
-  realChange = (change / 2);
+  realChange = (change / 6);
 
   if (realChange > 0) {
     realChange = Math.floor(realChange);
@@ -112,7 +112,11 @@ var moveListener = function (e) {
 };
 
 function formatDate(date) {
-  return paddy(date.getDate(), 2) + "/" + paddy((date.getMonth() + 1), 2) + "/" + date.getFullYear();
+  return paddy(date.getDate(), 2)
+    + "/"
+    + paddy((date.getMonth() + 1), 2)
+    + "/"
+    + date.getFullYear();
 }
 function paddy(subject, length, padChar) {
   var pad_char = typeof padChar !== 'undefined' ? padChar : '0';
