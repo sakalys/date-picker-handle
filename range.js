@@ -52,10 +52,7 @@
     moveTotal += stackedMove;
     stackedMove = 0;
 
-    daysFromToday += (moveTotal / 60);
-    console.log(moveTotal);
-    // console.log(daysFromToday);
-
+    daysFromToday = (moveTotal / 10);
 
     if (daysFromToday > 0) {
       daysFromToday = Math.floor(daysFromToday);
@@ -105,27 +102,34 @@
       return currentPosition;
     }
 
-    var samplesPerSecond = 10;
+    var samplesPerSecond = 20;
 
     var previousPos = getCurrentPosition();
 
+    var mediumVel = 1;
+
     acceleratorInterval = setInterval(function () {
-      var accelerate = 1;
-      var diff = previousPos - getCurrentPosition();
+      var velocity = 1;
+      var thisPos = getCurrentPosition();
+      var diff = previousPos - thisPos;
 
       var absDiff = Math.abs(diff);
 
       if (absDiff < 9) {
-        accelerate = 1;
+        velocity = 1;
       } else if (absDiff < 16) {
-        accelerate = 2;
+        velocity = 5;
       } else if (absDiff < 20) {
-        accelerate = 20;
+        velocity = 20;
       } else if (absDiff < 30) {
-        accelerate = 40;
+        velocity = 40;
       }
 
-      stackedMove += accelerate * (diff/100);
+      velocity = (7 * mediumVel + 1 * velocity) / 8;
+
+      previousPos = thisPos;
+
+      stackedMove += velocity * (diff);
     }, 1000 / samplesPerSecond)
   }
 
