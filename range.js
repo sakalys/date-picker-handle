@@ -52,7 +52,7 @@
     moveTotal += stackedMove;
     stackedMove = 0;
 
-    daysFromToday = (moveTotal / 10);
+    daysFromToday = moveTotal / 30;
 
     if (daysFromToday > 0) {
       daysFromToday = Math.floor(daysFromToday);
@@ -102,7 +102,7 @@
       return currentPosition;
     }
 
-    var samplesPerSecond = 20;
+    var samplesPerSecond = 30;
 
     var previousPos = getCurrentPosition();
 
@@ -115,21 +115,19 @@
 
       var absDiff = Math.abs(diff);
 
-      if (absDiff < 9) {
+      if (absDiff < 8) {
         velocity = 1;
-      } else if (absDiff < 16) {
-        velocity = 5;
-      } else if (absDiff < 20) {
-        velocity = 20;
-      } else if (absDiff < 30) {
-        velocity = 40;
+      } else if (absDiff < 22) {
+        velocity = 10;
+      } else if (absDiff < 50) {
+        velocity = 300;
       }
 
-      velocity = (7 * mediumVel + 1 * velocity) / 8;
+      mediumVel = Math.floor(((7 * mediumVel + 2 * velocity) / 9) * 100) / 100;
 
       previousPos = thisPos;
 
-      stackedMove += velocity * (diff);
+      stackedMove += mediumVel * (diff);
     }, 1000 / samplesPerSecond)
   }
 
