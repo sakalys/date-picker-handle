@@ -50,7 +50,7 @@
     currentPosition = e.screenY;
 
     moveTotal += stackedMove;
-    stackedMove = 0;
+    // stackedMove = 0;
 
     daysFromToday = moveTotal / 30;
 
@@ -121,13 +121,17 @@
         velocity = 10;
       } else if (absDiff < 50) {
         velocity = 300;
+      } else if (absDiff < 90) {
+          velocity = 1000;
       }
 
-      mediumVel = Math.floor(((7 * mediumVel + 2 * velocity) / 9) * 100) / 100;
+        var newMedium = (3 * mediumVel + 1 * velocity) / 4;
+
+        mediumVel = Math.floor(newMedium * 100) / 100;
 
       previousPos = thisPos;
 
-      stackedMove += mediumVel * (diff);
+      stackedMove = mediumVel - 1;
     }, 1000 / samplesPerSecond)
   }
 
