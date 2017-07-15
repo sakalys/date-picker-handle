@@ -28,15 +28,8 @@ function setupHandleElement(el: Element) {
 setupHandleElement(fromHandle);
 setupHandleElement(toHandle);
 
-function pressedCb(e: MouseEvent) {
-  enableScroll(e);
-}
-function unpressedCb() {
-  disableScroll();
-}
-
-fromHandle.addEventListener('mousedown', pressedCb);
-fromHandle.addEventListener('touchstart', pressedCb);
+fromHandle.addEventListener('mousedown', enableScroll);
+fromHandle.addEventListener('touchstart', enableScroll);
 
 
 function moveListener(e: MouseEvent) {
@@ -71,9 +64,9 @@ function paddy(subject: string, length: number, padChar = '0') {
 }
 
 function enableScroll(e: MouseEvent) {
-  document.addEventListener('mouseup', unpressedCb);
-  document.addEventListener('touchend', unpressedCb);
-  document.addEventListener('touchcancel', unpressedCb);
+  document.addEventListener('mouseup', disableScroll);
+  document.addEventListener('touchend', disableScroll);
+  document.addEventListener('touchcancel', disableScroll);
   out.innerHTML = formatDate(prepareDate(daysFromToday));
 
   currentPosition = e.screenY;
