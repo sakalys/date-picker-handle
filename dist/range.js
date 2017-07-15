@@ -65,24 +65,28 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-(function() {
-  var picker = document.querySelector('.sakalys-date-range');
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helpers__ = __webpack_require__(1);
 
-  var from = picker.querySelector('.skl-from'),
-    fromHandle = from.querySelector('.handle');
 
-  var to = picker.querySelector('.skl-to'),
-    toHandle = to.querySelector('.handle');
+(function () {
+  const picker = document.querySelector('.sakalys-date-range');
+
+  const from = picker.querySelector('.skl-from'),
+        fromHandle = from.querySelector('.handle'),
+        to = picker.querySelector('.skl-to'),
+        toHandle = to.querySelector('.handle');
 
   var out = document.querySelector('.testFrom');
 
   var daysFromToday = 0,
-    moveTotal = 0,
-    stackedMove = 0,
-    acceleratorInterval = null,
-    currentPosition;
+      moveTotal = 0,
+      stackedMove = 0,
+      acceleratorInterval = null,
+      currentPosition;
 
   function setupHandleElement(el) {
     function stop(e) {
@@ -105,16 +109,7 @@
   fromHandle.addEventListener('mousedown', pressedCb);
   fromHandle.addEventListener('touchstart', pressedCb);
 
-
-  function prepareDate(dayDiff) {
-    var date = new Date();
-
-    date.setTime(date.getTime() + (dayDiff * 1000 * 60 * 60 * 24));
-
-    return date;
-  }
-
-  function moveListener (e) {
+  function moveListener(e) {
 
     currentPosition = e.screenY;
 
@@ -129,15 +124,11 @@
       daysFromToday = Math.ceil(daysFromToday);
     }
 
-    out.innerHTML = formatDate(prepareDate(daysFromToday));
+    out.innerHTML = formatDate(Object(__WEBPACK_IMPORTED_MODULE_0__helpers__["a" /* prepareDate */])(daysFromToday));
   }
 
   function formatDate(date) {
-    return paddy(date.getDate(), 2)
-      + "/"
-      + paddy((date.getMonth() + 1), 2)
-      + "/"
-      + date.getFullYear();
+    return paddy(date.getDate(), 2) + "/" + paddy(date.getMonth() + 1, 2) + "/" + date.getFullYear();
   }
 
   function paddy(subject, length, padChar) {
@@ -150,7 +141,7 @@
     document.addEventListener('mouseup', unpressedCb);
     document.addEventListener('touchend', unpressedCb);
     document.addEventListener('touchcancel', unpressedCb);
-    out.innerHTML = formatDate(prepareDate(daysFromToday));
+    out.innerHTML = formatDate(Object(__WEBPACK_IMPORTED_MODULE_0__helpers__["a" /* prepareDate */])(daysFromToday));
 
     currentPosition = e.screenY;
 
@@ -191,17 +182,17 @@
       } else if (absDiff < 50) {
         velocity = 300;
       } else if (absDiff < 90) {
-          velocity = 1000;
+        velocity = 1000;
       }
 
-        var newMedium = (3 * mediumVel + 1 * velocity) / 4;
+      var newMedium = (3 * mediumVel + 1 * velocity) / 4;
 
-        mediumVel = Math.floor(newMedium * 100) / 100;
+      mediumVel = Math.floor(newMedium * 100) / 100;
 
       previousPos = thisPos;
 
       stackedMove = mediumVel - 1;
-    }, 1000 / samplesPerSecond)
+    }, 1000 / samplesPerSecond);
   }
 
   function stopAccelerator() {
@@ -211,8 +202,21 @@
 
     clearInterval(acceleratorInterval);
   }
-
 })();
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = prepareDate;
+function prepareDate(dayDiff) {
+  const date = new Date();
+
+  date.setTime(date.getTime() + dayDiff * 1000 * 60 * 60 * 24);
+
+  return date;
+}
 
 /***/ })
 /******/ ]);

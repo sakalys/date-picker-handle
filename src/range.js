@@ -1,10 +1,11 @@
+import {prepareDate} from "./helpers";
+
 (function() {
-  var picker = document.querySelector('.sakalys-date-range');
+  const picker = document.querySelector('.sakalys-date-range');
 
-  var from = picker.querySelector('.skl-from'),
-    fromHandle = from.querySelector('.handle');
-
-  var to = picker.querySelector('.skl-to'),
+  const from = picker.querySelector('.skl-from'),
+    fromHandle = from.querySelector('.handle'),
+    to = picker.querySelector('.skl-to'),
     toHandle = to.querySelector('.handle');
 
   var out = document.querySelector('.testFrom');
@@ -36,14 +37,6 @@
   fromHandle.addEventListener('mousedown', pressedCb);
   fromHandle.addEventListener('touchstart', pressedCb);
 
-
-  function prepareDate(dayDiff) {
-    var date = new Date();
-
-    date.setTime(date.getTime() + (dayDiff * 1000 * 60 * 60 * 24));
-
-    return date;
-  }
 
   function moveListener (e) {
 
