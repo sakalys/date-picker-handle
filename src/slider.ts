@@ -4,6 +4,9 @@ class ValueSlider {
   private handle: HTMLElement;
 
   private static mousePosition: number;
+  private acceleratorInterval: number;
+  private previousVelocity: number = 0;
+  private moveTotal: number = 0;
 
   constructor(private el: HTMLInputElement) {
     this.initialType = el.type;
@@ -39,7 +42,7 @@ class ValueSlider {
   }
 
 
-  private moveCb(e: MouseEvent) {
+  private static moveCb(e: MouseEvent) {
     ValueSlider.mousePosition = e.screenY;
   }
 
@@ -60,13 +63,13 @@ class ValueSlider {
   private _armSlider(e: MouseEvent) {
     e.preventDefault();
 
-    let moveListener = this.moveCb.bind(this);
+    let moveListener = ValueSlider.moveCb.bind(this);
 
     const _stopSlider = () => {
       this._off(document, 'mousemove', moveListener);
       this._off(document, 'mouseup', boundStopListener);
 
-      stopClock();
+      this.stopClock();
     };
 
     const boundStopListener = _stopSlider.bind(this);
@@ -83,7 +86,7 @@ class ValueSlider {
   }
 
 
-  getCurrentPosition() {
+  static getCurrentPosition() {
     return ValueSlider.mousePosition;
   }
 
@@ -92,13 +95,13 @@ class ValueSlider {
 
     const samplesPerSecond = 30;
 
-    let previousPos = this.getCurrentPosition();
+    let previousPos = ValueSlider.getCurrentPosition();
 
     let mediumVel = 1;
 
-    acceleratorInterval = setInterval(() => {
+    this.acceleratorInterval = setInterval(() => {
       let velocity = 0;
-      const thisPos = this.getCurrentPosition();
+      const thisPos = ValueSlider.getCurrentPosition();
       const diff = previousPos - thisPos;
 
       let direction = 0;
@@ -113,30 +116,33 @@ class ValueSlider {
       if (absDiff == 0) {
         velocity = 0;
       } else if (absDiff < 8) {
-        velocity = 1;
+        velocity = 2;
       } else if (absDiff < 22) {
-        velocity = 10;
+        velocity = 20;
       } else if (absDiff < 50) {
-        velocity = 300;
-      } else if (absDiff < 90) {
-        velocity = 1000;
+        velocity = 700;
+      } else {
+        velocity = 20000;
       }
 
       velocity *= direction;
 
-      const newMedium = (3 * mediumVel + velocity) / 4;
+      let newMedium;
+
+      if (this.previousVelocity == 0) {
+        newMedium = Math.floor(velocity * 1.2);
+      } else {
+        newMedium = (3 * mediumVel + velocity) / 4;
+      }
 
       mediumVel = Math.floor(newMedium * 100) / 100;
 
       previousPos = thisPos;
 
-      stackedMove = mediumVel;
-
-
-      moveTotal += stackedMove;
+      this.moveTotal += mediumVel;
       // stackedMove = 0;
 
-      let currentValue = moveTotal / samplesPerSecond;
+      let currentValue = this.moveTotal / samplesPerSecond;
 
       if (currentValue > 0) {
         currentValue = Math.floor(currentValue);
@@ -151,22 +157,21 @@ class ValueSlider {
       });
 
 
+      this.previousVelocity = mediumVel;
+
     }, 1000 / samplesPerSecond)
+  }
+
+
+  stopClock() {
+    if (!this.acceleratorInterval) {
+      return;
+    }
+
+    clearInterval(this.acceleratorInterval);
   }
 }
 
 
 new ValueSlider(<HTMLInputElement>document.querySelector('.from'));
 
-let moveTotal = 0,
-  stackedMove = 0,
-  acceleratorInterval: number = null;
-
-
-function stopClock() {
-  if (!acceleratorInterval) {
-    return;
-  }
-
-  clearInterval(acceleratorInterval);
-}
