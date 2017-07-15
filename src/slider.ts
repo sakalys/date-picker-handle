@@ -1,14 +1,105 @@
-import {prepareDate} from "./helpers";
+import {formatDate, prepareDate} from "./helpers";
 
 
-const picker = document.querySelector('.sakalys-date-range');
+class ValueSlider {
+  private value: number;
+  private initialType: string;
+  private handle: HTMLElement;
 
-const from = picker.querySelector('.skl-from'),
-  fromHandle = from.querySelector('.handle'),
-  to = picker.querySelector('.skl-to'),
-  toHandle = to.querySelector('.handle');
+  private static mousePosition: number;
 
-const out = document.querySelector('.testFrom');
+  constructor(private el: HTMLInputElement) {
+    this.initialType = el.type;
+    this.value = parseInt(el.value);
+    this._init();
+  }
+
+  private _init() {
+    this.el.type = 'hidden';
+    this.handle = this._createHandle(this.el);
+    this.el.parentElement.insertBefore(this.handle, this.el);
+  }
+
+  private _createHandle(el: HTMLInputElement): HTMLElement {
+    const handle = document.createElement('a');
+    handle.innerHTML = String(el.value);
+    el.className.split(' ').forEach(className => handle.classList.add(className));
+
+    Object.assign(handle.style, {
+      cursor: 'ns-resize',
+      'user-select': 'none'
+    });
+
+
+    this._setupHandle(handle);
+
+    return handle;
+  }
+
+
+  private _setupHandle(handle: HTMLElement) {
+    this._on(handle, 'mousedown touchstart', this._armSlider.bind(this));
+  }
+
+
+  private moveCb(e: MouseEvent) {
+    // console.log(this, e);
+
+    currentPosition = e.screenY;
+
+    moveTotal += stackedMove;
+    // stackedMove = 0;
+
+    daysFromToday = moveTotal / 30;
+
+    if (daysFromToday > 0) {
+      daysFromToday = Math.floor(daysFromToday);
+    } else {
+      daysFromToday = Math.ceil(daysFromToday);
+    }
+
+    this.handle.innerHTML = formatDate(prepareDate(daysFromToday));
+  }
+
+
+  private _on(el: Node, events: string, cb: (e: Event | void) => boolean | void) {
+    events.split(' ').forEach((eventName: string) => {
+      el.addEventListener(eventName, cb);
+    });
+  }
+
+  private _off(el: Node, events: string, cb: (e: Event | void) => boolean | void) {
+    events.split(' ').forEach((eventName: string) => {
+      el.removeEventListener(eventName, cb);
+    });
+  }
+
+
+  private _armSlider(e: MouseEvent) {
+    e.preventDefault();
+
+    let moveListener = this.moveCb.bind(this);
+
+    const _stopSlider = () => {
+      console.log('Stopped');
+      this._off(document, 'mousemove', moveListener);
+      this._off(document, 'mouseup', bindedStop);
+
+      stopClock();
+    };
+
+    const bindedStop = _stopSlider.bind(this);
+
+    this._on(document, 'mousemove', moveListener);
+    this._on(document, 'mouseup', bindedStop);
+
+    ValueSlider.mousePosition = e.screenY;
+    startClock();
+  }
+}
+
+
+new ValueSlider(<HTMLInputElement>document.querySelector('.from'));
 
 let daysFromToday = 0,
   moveTotal = 0,
@@ -16,73 +107,7 @@ let daysFromToday = 0,
   acceleratorInterval: number = null,
   currentPosition: number;
 
-function setupHandleElement(el: Element) {
-  function stop(e: MouseEvent) {
-    e.preventDefault();
-  }
-
-  el.addEventListener('dragstart', stop);
-  el.addEventListener('touchstart', stop);
-}
-
-setupHandleElement(fromHandle);
-setupHandleElement(toHandle);
-
-fromHandle.addEventListener('mousedown', enableScroll);
-fromHandle.addEventListener('touchstart', enableScroll);
-
-
-function moveListener(e: MouseEvent) {
-
-  currentPosition = e.screenY;
-
-  moveTotal += stackedMove;
-  // stackedMove = 0;
-
-  daysFromToday = moveTotal / 30;
-
-  if (daysFromToday > 0) {
-    daysFromToday = Math.floor(daysFromToday);
-  } else {
-    daysFromToday = Math.ceil(daysFromToday);
-  }
-
-  out.innerHTML = formatDate(prepareDate(daysFromToday));
-}
-
-function formatDate(date: Date) {
-  return paddy(String(date.getDate()), 2)
-    + "/"
-    + paddy(String(date.getMonth() + 1), 2)
-    + "/"
-    + date.getFullYear();
-}
-
-function paddy(subject: string, length: number, padChar = '0') {
-  const pad = new Array(1 + length).join(padChar);
-  return (pad + subject).slice(-pad.length);
-}
-
-function enableScroll(e: MouseEvent) {
-  document.addEventListener('mouseup', disableScroll);
-  document.addEventListener('touchend', disableScroll);
-  document.addEventListener('touchcancel', disableScroll);
-  out.innerHTML = formatDate(prepareDate(daysFromToday));
-
-  currentPosition = e.screenY;
-
-  document.addEventListener('mousemove', moveListener);
-  document.addEventListener('touchmove', moveListener);
-  startAccelerator();
-}
-
-function disableScroll() {
-  document.removeEventListener('mousemove', moveListener);
-  document.removeEventListener('touchmove', moveListener);
-  stopAccelerator();
-}
-
-function startAccelerator() {
+function startClock() {
 
   function getCurrentPosition() {
     return currentPosition;
@@ -121,7 +146,7 @@ function startAccelerator() {
   }, 1000 / samplesPerSecond)
 }
 
-function stopAccelerator() {
+function stopClock() {
   if (!acceleratorInterval) {
     return;
   }
