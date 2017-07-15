@@ -8,16 +8,16 @@ const from = picker.querySelector('.skl-from'),
   to = picker.querySelector('.skl-to'),
   toHandle = to.querySelector('.handle');
 
-var out = document.querySelector('.testFrom');
+const out = document.querySelector('.testFrom');
 
-var daysFromToday = 0,
+let daysFromToday = 0,
   moveTotal = 0,
   stackedMove = 0,
-  acceleratorInterval = null,
-  currentPosition;
+  acceleratorInterval: number = null,
+  currentPosition: number;
 
-function setupHandleElement(el) {
-  function stop(e) {
+function setupHandleElement(el: Element) {
+  function stop(e: MouseEvent) {
     e.preventDefault();
   }
 
@@ -28,10 +28,10 @@ function setupHandleElement(el) {
 setupHandleElement(fromHandle);
 setupHandleElement(toHandle);
 
-function pressedCb(e) {
+function pressedCb(e: MouseEvent) {
   enableScroll(e);
 }
-function unpressedCb(e) {
+function unpressedCb() {
   disableScroll();
 }
 
@@ -39,7 +39,7 @@ fromHandle.addEventListener('mousedown', pressedCb);
 fromHandle.addEventListener('touchstart', pressedCb);
 
 
-function moveListener(e) {
+function moveListener(e: MouseEvent) {
 
   currentPosition = e.screenY;
 
@@ -57,7 +57,7 @@ function moveListener(e) {
   out.innerHTML = formatDate(prepareDate(daysFromToday));
 }
 
-function formatDate(date) {
+function formatDate(date: Date) {
   return paddy(String(date.getDate()), 2)
     + "/"
     + paddy(String(date.getMonth() + 1), 2)
@@ -65,12 +65,12 @@ function formatDate(date) {
     + date.getFullYear();
 }
 
-function paddy(subject, length, padChar = '0') {
-  var pad = new Array(1 + length).join(padChar);
+function paddy(subject: string, length: number, padChar = '0') {
+  const pad = new Array(1 + length).join(padChar);
   return (pad + subject).slice(-pad.length);
 }
 
-function enableScroll(e) {
+function enableScroll(e: MouseEvent) {
   document.addEventListener('mouseup', unpressedCb);
   document.addEventListener('touchend', unpressedCb);
   document.addEventListener('touchcancel', unpressedCb);
@@ -95,18 +95,18 @@ function startAccelerator() {
     return currentPosition;
   }
 
-  var samplesPerSecond = 30;
+  const samplesPerSecond = 30;
 
-  var previousPos = getCurrentPosition();
+  let previousPos = getCurrentPosition();
 
-  var mediumVel = 1;
+  let mediumVel = 1;
 
   acceleratorInterval = setInterval(function () {
-    var velocity = 1;
-    var thisPos = getCurrentPosition();
-    var diff = previousPos - thisPos;
+    let velocity = 1;
+    const thisPos = getCurrentPosition();
+    const diff = previousPos - thisPos;
 
-    var absDiff = Math.abs(diff);
+    const absDiff = Math.abs(diff);
 
     if (absDiff < 8) {
       velocity = 1;
@@ -118,7 +118,7 @@ function startAccelerator() {
       velocity = 1000;
     }
 
-    var newMedium = (3 * mediumVel + 1 * velocity) / 4;
+    const newMedium = (3 * mediumVel + velocity) / 4;
 
     mediumVel = Math.floor(newMedium * 100) / 100;
 

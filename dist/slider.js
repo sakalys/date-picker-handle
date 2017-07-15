@@ -87,7 +87,7 @@ setupHandleElement(toHandle);
 function pressedCb(e) {
     enableScroll(e);
 }
-function unpressedCb(e) {
+function unpressedCb() {
     disableScroll();
 }
 fromHandle.addEventListener('mousedown', pressedCb);
@@ -156,7 +156,7 @@ function startAccelerator() {
         else if (absDiff < 90) {
             velocity = 1000;
         }
-        var newMedium = (3 * mediumVel + 1 * velocity) / 4;
+        var newMedium = (3 * mediumVel + velocity) / 4;
         mediumVel = Math.floor(newMedium * 100) / 100;
         previousPos = thisPos;
         stackedMove = mediumVel - 1;
