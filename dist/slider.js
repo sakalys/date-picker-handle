@@ -65,158 +65,125 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helpers__ = __webpack_require__(1);
 
-
-(function () {
-  const picker = document.querySelector('.sakalys-date-range');
-
-  const from = picker.querySelector('.skl-from'),
-        fromHandle = from.querySelector('.handle'),
-        to = picker.querySelector('.skl-to'),
-        toHandle = to.querySelector('.handle');
-
-  var out = document.querySelector('.testFrom');
-
-  var daysFromToday = 0,
-      moveTotal = 0,
-      stackedMove = 0,
-      acceleratorInterval = null,
-      currentPosition;
-
-  function setupHandleElement(el) {
+Object.defineProperty(exports, "__esModule", { value: true });
+var helpers_1 = __webpack_require__(1);
+var picker = document.querySelector('.sakalys-date-range');
+var from = picker.querySelector('.skl-from'), fromHandle = from.querySelector('.handle'), to = picker.querySelector('.skl-to'), toHandle = to.querySelector('.handle');
+var out = document.querySelector('.testFrom');
+var daysFromToday = 0, moveTotal = 0, stackedMove = 0, acceleratorInterval = null, currentPosition;
+function setupHandleElement(el) {
     function stop(e) {
-      e.preventDefault();
+        e.preventDefault();
     }
     el.addEventListener('dragstart', stop);
     el.addEventListener('touchstart', stop);
-  }
-
-  setupHandleElement(fromHandle);
-  setupHandleElement(toHandle);
-
-  function pressedCb(e) {
+}
+setupHandleElement(fromHandle);
+setupHandleElement(toHandle);
+function pressedCb(e) {
     enableScroll(e);
-  }
-  function unpressedCb(e) {
-    disableScroll(e);
-  }
-
-  fromHandle.addEventListener('mousedown', pressedCb);
-  fromHandle.addEventListener('touchstart', pressedCb);
-
-  function moveListener(e) {
-
+}
+function unpressedCb(e) {
+    disableScroll();
+}
+fromHandle.addEventListener('mousedown', pressedCb);
+fromHandle.addEventListener('touchstart', pressedCb);
+function moveListener(e) {
     currentPosition = e.screenY;
-
     moveTotal += stackedMove;
     // stackedMove = 0;
-
     daysFromToday = moveTotal / 30;
-
     if (daysFromToday > 0) {
-      daysFromToday = Math.floor(daysFromToday);
-    } else {
-      daysFromToday = Math.ceil(daysFromToday);
+        daysFromToday = Math.floor(daysFromToday);
     }
-
-    out.innerHTML = formatDate(Object(__WEBPACK_IMPORTED_MODULE_0__helpers__["a" /* prepareDate */])(daysFromToday));
-  }
-
-  function formatDate(date) {
-    return paddy(date.getDate(), 2) + "/" + paddy(date.getMonth() + 1, 2) + "/" + date.getFullYear();
-  }
-
-  function paddy(subject, length, padChar) {
-    var pad_char = typeof padChar !== 'undefined' ? padChar : '0';
-    var pad = new Array(1 + length).join(pad_char);
+    else {
+        daysFromToday = Math.ceil(daysFromToday);
+    }
+    out.innerHTML = formatDate(helpers_1.prepareDate(daysFromToday));
+}
+function formatDate(date) {
+    return paddy(String(date.getDate()), 2)
+        + "/"
+        + paddy(String(date.getMonth() + 1), 2)
+        + "/"
+        + date.getFullYear();
+}
+function paddy(subject, length, padChar) {
+    if (padChar === void 0) { padChar = '0'; }
+    var pad = new Array(1 + length).join(padChar);
     return (pad + subject).slice(-pad.length);
-  }
-
-  function enableScroll(e) {
+}
+function enableScroll(e) {
     document.addEventListener('mouseup', unpressedCb);
     document.addEventListener('touchend', unpressedCb);
     document.addEventListener('touchcancel', unpressedCb);
-    out.innerHTML = formatDate(Object(__WEBPACK_IMPORTED_MODULE_0__helpers__["a" /* prepareDate */])(daysFromToday));
-
+    out.innerHTML = formatDate(helpers_1.prepareDate(daysFromToday));
     currentPosition = e.screenY;
-
     document.addEventListener('mousemove', moveListener);
     document.addEventListener('touchmove', moveListener);
     startAccelerator();
-  }
-
-  function disableScroll() {
+}
+function disableScroll() {
     document.removeEventListener('mousemove', moveListener);
     document.removeEventListener('touchmove', moveListener);
     stopAccelerator();
-  }
-
-  function startAccelerator() {
-
+}
+function startAccelerator() {
     function getCurrentPosition() {
-      return currentPosition;
+        return currentPosition;
     }
-
     var samplesPerSecond = 30;
-
     var previousPos = getCurrentPosition();
-
     var mediumVel = 1;
-
     acceleratorInterval = setInterval(function () {
-      var velocity = 1;
-      var thisPos = getCurrentPosition();
-      var diff = previousPos - thisPos;
-
-      var absDiff = Math.abs(diff);
-
-      if (absDiff < 8) {
-        velocity = 1;
-      } else if (absDiff < 22) {
-        velocity = 10;
-      } else if (absDiff < 50) {
-        velocity = 300;
-      } else if (absDiff < 90) {
-        velocity = 1000;
-      }
-
-      var newMedium = (3 * mediumVel + 1 * velocity) / 4;
-
-      mediumVel = Math.floor(newMedium * 100) / 100;
-
-      previousPos = thisPos;
-
-      stackedMove = mediumVel - 1;
+        var velocity = 1;
+        var thisPos = getCurrentPosition();
+        var diff = previousPos - thisPos;
+        var absDiff = Math.abs(diff);
+        if (absDiff < 8) {
+            velocity = 1;
+        }
+        else if (absDiff < 22) {
+            velocity = 10;
+        }
+        else if (absDiff < 50) {
+            velocity = 300;
+        }
+        else if (absDiff < 90) {
+            velocity = 1000;
+        }
+        var newMedium = (3 * mediumVel + 1 * velocity) / 4;
+        mediumVel = Math.floor(newMedium * 100) / 100;
+        previousPos = thisPos;
+        stackedMove = mediumVel - 1;
     }, 1000 / samplesPerSecond);
-  }
-
-  function stopAccelerator() {
+}
+function stopAccelerator() {
     if (!acceleratorInterval) {
-      return;
+        return;
     }
-
     clearInterval(acceleratorInterval);
-  }
-})();
+}
+
 
 /***/ }),
 /* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = prepareDate;
+
+Object.defineProperty(exports, "__esModule", { value: true });
 function prepareDate(dayDiff) {
-  const date = new Date();
-
-  date.setTime(date.getTime() + dayDiff * 1000 * 60 * 60 * 24);
-
-  return date;
+    var date = new Date();
+    date.setTime(date.getTime() + (dayDiff * 1000 * 60 * 60 * 24));
+    return date;
 }
+exports.prepareDate = prepareDate;
+
 
 /***/ })
 /******/ ]);

@@ -1,16 +1,18 @@
 const webpack = require('webpack');
 
 const config = {
-  entry: './src/range.js',
+  entry: './src/slider.ts',
   output: {
-    filename: 'dist/range.js'
+    filename: 'dist/slider.js'
+  },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"]
   },
   module: {
-    rules: [{
-      test: /\.js$/, // files ending with .js
-      exclude: /node_modules/, // exclude the node_modules directory
-      loader: "babel-loader" // use this (babel-core) loader
-    }]
+    rules: [
+      {test: /\.css$/, use: 'css-loader'},
+      {test: /\.ts$/, use: 'ts-loader', exclude: /node_modules/}
+    ]
   }
 };
 
