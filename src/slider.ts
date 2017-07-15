@@ -116,13 +116,9 @@ class ValueSlider {
       if (absDiff == 0) {
         velocity = 0;
       } else if (absDiff < 8) {
-        velocity = 2;
-      } else if (absDiff < 22) {
-        velocity = 20;
-      } else if (absDiff < 50) {
-        velocity = 700;
+        velocity = 3;
       } else {
-        velocity = 20000;
+        velocity = Math.pow(absDiff / 2, 2.2);
       }
 
       velocity *= direction;
