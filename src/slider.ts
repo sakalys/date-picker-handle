@@ -1,6 +1,3 @@
-import {formatDate, prepareDate} from "./helpers";
-
-
 class ValueSlider {
   private value: number;
   private initialType: string;
@@ -27,7 +24,7 @@ class ValueSlider {
 
     Object.assign(handle.style, {
       cursor: 'ns-resize',
-      'user-select': 'none'
+      // 'user-select': 'none'
     });
 
 
@@ -38,27 +35,12 @@ class ValueSlider {
 
 
   private _setupHandle(handle: HTMLElement) {
-    this._on(handle, 'mousedown touchstart', this._armSlider.bind(this));
+    this._on(handle, 'mousedown', this._armSlider.bind(this));
   }
 
 
   private moveCb(e: MouseEvent) {
-    // console.log(this, e);
-
-    currentPosition = e.screenY;
-
-    moveTotal += stackedMove;
-    // stackedMove = 0;
-
-    daysFromToday = moveTotal / 30;
-
-    if (daysFromToday > 0) {
-      daysFromToday = Math.floor(daysFromToday);
-    } else {
-      daysFromToday = Math.ceil(daysFromToday);
-    }
-
-    this.handle.innerHTML = formatDate(prepareDate(daysFromToday));
+    ValueSlider.mousePosition = e.screenY;
   }
 
 
@@ -81,70 +63,105 @@ class ValueSlider {
     let moveListener = this.moveCb.bind(this);
 
     const _stopSlider = () => {
-      console.log('Stopped');
       this._off(document, 'mousemove', moveListener);
-      this._off(document, 'mouseup', bindedStop);
+      this._off(document, 'mouseup', boundStopListener);
 
       stopClock();
     };
 
-    const bindedStop = _stopSlider.bind(this);
+    const boundStopListener = _stopSlider.bind(this);
 
     this._on(document, 'mousemove', moveListener);
-    this._on(document, 'mouseup', bindedStop);
+    this._on(document, 'mouseup', boundStopListener);
 
     ValueSlider.mousePosition = e.screenY;
-    startClock();
+    this.startClock();
+  }
+
+  private _throttleUpdate(cb: () => void) {
+    cb.apply(this);
+  }
+
+
+  getCurrentPosition() {
+    return ValueSlider.mousePosition;
+  }
+
+
+  startClock() {
+
+    const samplesPerSecond = 30;
+
+    let previousPos = this.getCurrentPosition();
+
+    let mediumVel = 1;
+
+    acceleratorInterval = setInterval(() => {
+      let velocity = 0;
+      const thisPos = this.getCurrentPosition();
+      const diff = previousPos - thisPos;
+
+      let direction = 0;
+      if (diff > 0) {
+        direction = 1;
+      } else if (diff < 0) {
+        direction = -1;
+      }
+
+      const absDiff = Math.abs(diff);
+
+      if (absDiff == 0) {
+        velocity = 0;
+      } else if (absDiff < 8) {
+        velocity = 1;
+      } else if (absDiff < 22) {
+        velocity = 10;
+      } else if (absDiff < 50) {
+        velocity = 300;
+      } else if (absDiff < 90) {
+        velocity = 1000;
+      }
+
+      velocity *= direction;
+
+      const newMedium = (3 * mediumVel + velocity) / 4;
+
+      mediumVel = Math.floor(newMedium * 100) / 100;
+
+      previousPos = thisPos;
+
+      stackedMove = mediumVel;
+
+
+      moveTotal += stackedMove;
+      // stackedMove = 0;
+
+      let currentValue = moveTotal / samplesPerSecond;
+
+      if (currentValue > 0) {
+        currentValue = Math.floor(currentValue);
+      } else {
+        currentValue = Math.ceil(currentValue);
+      }
+
+      this.value = currentValue;
+
+      this._throttleUpdate(() => {
+        this.handle.innerHTML = String(this.value);
+      });
+
+
+    }, 1000 / samplesPerSecond)
   }
 }
 
 
 new ValueSlider(<HTMLInputElement>document.querySelector('.from'));
 
-let daysFromToday = 0,
-  moveTotal = 0,
+let moveTotal = 0,
   stackedMove = 0,
-  acceleratorInterval: number = null,
-  currentPosition: number;
+  acceleratorInterval: number = null;
 
-function startClock() {
-
-  function getCurrentPosition() {
-    return currentPosition;
-  }
-
-  const samplesPerSecond = 30;
-
-  let previousPos = getCurrentPosition();
-
-  let mediumVel = 1;
-
-  acceleratorInterval = setInterval(function () {
-    let velocity = 1;
-    const thisPos = getCurrentPosition();
-    const diff = previousPos - thisPos;
-
-    const absDiff = Math.abs(diff);
-
-    if (absDiff < 8) {
-      velocity = 1;
-    } else if (absDiff < 22) {
-      velocity = 10;
-    } else if (absDiff < 50) {
-      velocity = 300;
-    } else if (absDiff < 90) {
-      velocity = 1000;
-    }
-
-    const newMedium = (3 * mediumVel + velocity) / 4;
-
-    mediumVel = Math.floor(newMedium * 100) / 100;
-
-    previousPos = thisPos;
-
-    stackedMove = mediumVel - 1;
-  }, 1000 / samplesPerSecond)
-}
 
 function stopClock() {
   if (!acceleratorInterval) {
