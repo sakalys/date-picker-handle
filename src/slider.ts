@@ -1,44 +1,56 @@
+import {paddy} from "./helpers";
+interface Handle extends HTMLElement {
+  value: number
+  pixelsMoved: number
+  updated: (newVal: number) => void
+}
+interface Handles {day: Handle, month: Handle, year: Handle}
+
 class ValueSlider {
-  private value: number;
   private initialType: string;
-  private handle: HTMLElement;
 
   private static mousePosition: number;
   private acceleratorInterval: number;
   private previousVelocity: number = 0;
-  private moveTotal: number = 0;
+  private handles: Handles;
+  private wrapper: HTMLElement;
+  private value: string;
+  private divider: number = 8;
+  private date: Date = new Date;
 
   constructor(private el: HTMLInputElement) {
     this.initialType = el.type;
-    this.value = parseInt(el.value);
+    this.value = el.value;
     this._init();
   }
 
   private _init() {
     this.el.type = 'hidden';
-    this.handle = this._createHandle(this.el);
-    this.el.parentElement.insertBefore(this.handle, this.el);
+    this.wrapper = this._createWrapper(this.el);
+
+    this.handles = this._createHandles();
+
+    this.wrapper.appendChild(this.handles.year);
+    this.wrapper.appendChild(document.createTextNode('-'));
+    this.wrapper.appendChild(this.handles.month);
+    this.wrapper.appendChild(document.createTextNode('-'));
+    this.wrapper.appendChild(this.handles.day);
+
+    this.el.parentElement.insertBefore(this.wrapper, this.el);
+
+    this._updateText();
   }
 
-  private _createHandle(el: HTMLInputElement): HTMLElement {
-    const handle = document.createElement('a');
-    handle.innerHTML = String(el.value);
-    el.className.split(' ').forEach(className => handle.classList.add(className));
+  private _createWrapper(el: HTMLInputElement): HTMLElement {
+    const container = document.createElement('div');
+    el.className.split(' ').forEach(className => container.classList.add(className));
 
-    Object.assign(handle.style, {
-      cursor: 'ns-resize',
-      // 'user-select': 'none'
-    });
-
-
-    this._setupHandle(handle);
-
-    return handle;
+    return container;
   }
 
 
-  private _setupHandle(handle: HTMLElement) {
-    this._on(handle, 'mousedown', this._armSlider.bind(this));
+  private _setupHandle(handle: Handle) {
+    this._on(handle, 'mousedown', this._getSliderCb(handle).bind(this));
   }
 
 
@@ -60,25 +72,28 @@ class ValueSlider {
   }
 
 
-  private _armSlider(e: MouseEvent) {
-    e.preventDefault();
+  private _getSliderCb(handle: Handle): (e: MouseEvent) => void {
+    return (e: MouseEvent) => {
 
-    let moveListener = ValueSlider.moveCb.bind(this);
+      e.preventDefault();
 
-    const _stopSlider = () => {
-      this._off(document, 'mousemove', moveListener);
-      this._off(document, 'mouseup', boundStopListener);
+      let moveListener = ValueSlider.moveCb.bind(this);
 
-      this.stopClock();
-    };
+      const _stopSlider = () => {
+        this._off(document, 'mousemove', moveListener);
+        this._off(document, 'mouseup', boundStopListener);
 
-    const boundStopListener = _stopSlider.bind(this);
+        this.stopClock();
+      };
 
-    this._on(document, 'mousemove', moveListener);
-    this._on(document, 'mouseup', boundStopListener);
+      const boundStopListener = _stopSlider.bind(this);
 
-    ValueSlider.mousePosition = e.screenY;
-    this.startClock();
+      this._on(document, 'mousemove', moveListener);
+      this._on(document, 'mouseup', boundStopListener);
+
+      ValueSlider.mousePosition = e.screenY;
+      this.startClock(handle);
+    }
   }
 
   private _throttleUpdate(cb: () => void) {
@@ -91,7 +106,7 @@ class ValueSlider {
   }
 
 
-  startClock() {
+  startClock(handle: Handle) {
 
     const samplesPerSecond = 30;
 
@@ -100,11 +115,12 @@ class ValueSlider {
     let mediumVel = 1;
 
     this.acceleratorInterval = setInterval(() => {
-      let velocity = 0;
       const thisPos = ValueSlider.getCurrentPosition();
+
       const diff = previousPos - thisPos;
 
       let direction = 0;
+
       if (diff > 0) {
         direction = 1;
       } else if (diff < 0) {
@@ -113,24 +129,12 @@ class ValueSlider {
 
       const absDiff = Math.abs(diff);
 
-      if (absDiff == 0) {
-        velocity = 0;
-      } else if (absDiff < 8) {
-        velocity = 3;
-      } else if (absDiff > 40) {
-        velocity = 9;
-      } else if (absDiff > 80) {
-        velocity = 5000;
-      } else {
-        velocity = Math.pow(absDiff / 2, 2.2);
-      }
-
-      velocity *= direction;
+      let velocity = (absDiff == 0 ? 0 : 1) * direction;
 
       let newMedium;
 
       if (this.previousVelocity == 0) {
-        newMedium = Math.floor(velocity * 1.2);
+        newMedium = Math.floor(velocity);
       } else {
         newMedium = (mediumVel + velocity * 2) / 3;
       }
@@ -143,22 +147,12 @@ class ValueSlider {
 
       previousPos = thisPos;
 
-      this.moveTotal += mediumVel;
-
-      let currentValue = this.moveTotal / samplesPerSecond;
-
-      if (currentValue > 0) {
-        currentValue = Math.floor(currentValue);
-      } else {
-        currentValue = Math.ceil(currentValue);
-      }
-
-      this.value = currentValue;
+      handle.pixelsMoved = handle.pixelsMoved + diff;
 
       this._throttleUpdate(() => {
-        this.handle.innerHTML = String(this.value);
+        handle.updated(Math.floor(handle.pixelsMoved / this.divider));
+        this._updateText();
       });
-
 
       this.previousVelocity = mediumVel;
 
@@ -172,6 +166,65 @@ class ValueSlider {
     }
 
     clearInterval(this.acceleratorInterval);
+  }
+
+  private _createHandles(): Handles {
+    let handles: any = {};
+    ['day', 'month', 'year'].forEach((handleName) => {
+      const element = document.createElement('a');
+      element.classList.add(handleName);
+
+      Object.assign(element.style, {
+        cursor: 'ns-resize',
+        // 'user-select': 'none'
+      });
+
+      handles[handleName] = element;
+    });
+    let year = handles.year;
+    let month = handles.month;
+    let day = handles.day;
+
+    this._setupHandle(year);
+    this._setupHandle(month);
+    this._setupHandle(day);
+
+
+    let [yearText, monthText, dayText] = this.value.split('-');
+    this.date.setFullYear(parseInt(yearText));
+    this.date.setMonth(parseInt(monthText) - 1);
+    this.date.setDate(parseInt(dayText));
+
+    let val;
+
+    // YEAR
+    val = parseInt(yearText);
+    year.pixelsMoved = Math.floor(val * this.divider);
+    year.updated = (newVal:number) => {
+      this.date.setFullYear(newVal);
+    };
+
+
+    // MONTH
+    val = parseInt(monthText);
+    month.pixelsMoved = Math.floor(val * this.divider);
+    month.updated = (newVal:number) => {
+      this.date.setMonth(newVal - 1);
+    };
+
+    val = parseInt(dayText);
+    day.pixelsMoved = Math.floor(val * this.divider);
+    day.updated = (newVal:number) => {
+      this.date.setDate(newVal);
+    };
+
+    return handles;
+  }
+
+  private _updateText() {
+    this.handles.year.innerText = paddy(String(this.date.getFullYear()), 4);
+    this.handles.month.innerText = paddy(String(this.date.getMonth() + 1), 2);
+    this.handles.day.innerText = paddy(String(this.date.getDate()), 2);
   }
 }
 

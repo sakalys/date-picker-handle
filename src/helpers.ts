@@ -7,7 +7,7 @@ export function prepareDate(dayDiff: number) {
 }
 
 
-function paddy(subject: string, length: number, padChar = '0') {
+export function paddy(subject: string, length: number, padChar = '0') {
   const pad = new Array(1 + length).join(padChar);
   return (pad + subject).slice(-pad.length);
 }
