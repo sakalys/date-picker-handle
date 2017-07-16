@@ -1,5 +1,6 @@
 import {paddy} from "./helpers";
 interface Handle extends HTMLElement {
+  compensate: number;
   value: number
   pixelsMoved: number
   updated: (newVal: number) => void
@@ -171,13 +172,15 @@ class ValueSlider {
   private _createHandles(): Handles {
     let handles: any = {};
     ['day', 'month', 'year'].forEach((handleName) => {
-      const element = document.createElement('a');
+      const element = <Handle><any>document.createElement('a');
       element.classList.add(handleName);
 
       Object.assign(element.style, {
         cursor: 'ns-resize',
         // 'user-select': 'none'
       });
+
+      element.compensate = 0;
 
       handles[handleName] = element;
     });
@@ -209,6 +212,13 @@ class ValueSlider {
     val = parseInt(monthText);
     month.pixelsMoved = Math.floor(val * this.divider);
     month.updated = (newVal:number) => {
+
+      if (newVal < 1) {
+        month.compensate = -1;
+      } else if (newVal > 12) {
+        month.compensate = 1;
+      }
+
       this.date.setMonth(newVal - 1);
     };
 
