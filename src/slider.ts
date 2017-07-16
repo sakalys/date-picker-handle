@@ -117,6 +117,10 @@ class ValueSlider {
         velocity = 0;
       } else if (absDiff < 8) {
         velocity = 3;
+      } else if (absDiff > 40) {
+        velocity = 9;
+      } else if (absDiff > 80) {
+        velocity = 5000;
       } else {
         velocity = Math.pow(absDiff / 2, 2.2);
       }
@@ -128,10 +132,14 @@ class ValueSlider {
       if (this.previousVelocity == 0) {
         newMedium = Math.floor(velocity * 1.2);
       } else {
-        newMedium = (mediumVel + velocity) / 2;
+        newMedium = (mediumVel + velocity * 2) / 3;
       }
 
       mediumVel = Math.floor(newMedium * 100) / 100;
+
+      if (Math.abs(mediumVel) < 1) {
+        mediumVel = 0;
+      }
 
       previousPos = thisPos;
 
