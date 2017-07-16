@@ -128,7 +128,7 @@ class ValueSlider {
       if (this.previousVelocity == 0) {
         newMedium = Math.floor(velocity * 1.2);
       } else {
-        newMedium = (3 * mediumVel + velocity) / 4;
+        newMedium = (mediumVel + velocity) / 2;
       }
 
       mediumVel = Math.floor(newMedium * 100) / 100;
@@ -136,7 +136,6 @@ class ValueSlider {
       previousPos = thisPos;
 
       this.moveTotal += mediumVel;
-      // stackedMove = 0;
 
       let currentValue = this.moveTotal / samplesPerSecond;
 
