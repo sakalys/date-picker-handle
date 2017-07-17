@@ -1,23 +1,30 @@
 import {paddy} from "./helpers";
 interface Handle extends HTMLElement {
-  compensate: number;
-  value: number
-  pixelsMoved: number
   updated: (newVal: number) => void
 }
 interface Handles {day: Handle, month: Handle, year: Handle}
+
+interface TickData {
+  mediumVel: number
+  samplesPerSecond: number
+  previous: {
+    velocity: number,
+    position: number
+  }
+  handle: Handle
+}
 
 class ValueSlider {
   private initialType: string;
 
   private static mousePosition: number;
   private acceleratorInterval: number;
-  private previousVelocity: number = 0;
   private handles: Handles;
   private wrapper: HTMLElement;
   private value: string;
   private divider: number = 8;
   private date: Date = new Date;
+  private tickData: TickData;
 
   constructor(private el: HTMLInputElement) {
     this.initialType = el.type;
@@ -109,16 +116,24 @@ class ValueSlider {
 
   startClock(handle: Handle) {
 
-    const samplesPerSecond = 30;
+    this.tickData = {
+      mediumVel: 1,
+      samplesPerSecond: 30,
+      previous: {
+        velocity: 0,
+        position: ValueSlider.getCurrentPosition()
+      },
+      handle: handle
+    };
 
-    let previousPos = ValueSlider.getCurrentPosition();
+    this.acceleratorInterval = setInterval(this._tick.bind(this), 1000 / this.tickData.samplesPerSecond);
+  }
 
-    let mediumVel = 1;
+  _tick() {
+      const currentPosition = ValueSlider.getCurrentPosition();
 
-    this.acceleratorInterval = setInterval(() => {
-      const thisPos = ValueSlider.getCurrentPosition();
-
-      const diff = previousPos - thisPos;
+      const diff = this.tickData.previous.position - currentPosition;
+      const absDiff = Math.abs(diff);
 
       let direction = 0;
 
@@ -128,38 +143,32 @@ class ValueSlider {
         direction = -1;
       }
 
-      const absDiff = Math.abs(diff);
 
       let velocity = (absDiff == 0 ? 0 : 1) * direction;
 
-      let newMedium;
+      let newMedium = this._calculateNewMediumVelocity(velocity);
 
-      if (this.previousVelocity == 0) {
-        newMedium = Math.floor(velocity);
-      } else {
-        newMedium = (mediumVel + velocity * 2) / 3;
+      this.tickData.mediumVel = Math.floor(newMedium * 100) / 100;
+
+      if (Math.abs(this.tickData.mediumVel) < 1) {
+        this.tickData.mediumVel = 0;
       }
 
-      mediumVel = Math.floor(newMedium * 100) / 100;
+      this.tickData.previous.position = currentPosition;
 
-      if (Math.abs(mediumVel) < 1) {
-        mediumVel = 0;
-      }
-
-      previousPos = thisPos;
-
-      handle.pixelsMoved = handle.pixelsMoved + diff;
+      // handle.pixelsMoved = handle.pixelsMoved + diff;
 
       this._throttleUpdate(() => {
-        handle.updated(Math.floor(handle.pixelsMoved / this.divider));
+        // this.tickData.handle.updated(Math.floor(handle.pixelsMoved / this.divider));
         this._updateText();
       });
 
-      this.previousVelocity = mediumVel;
-
-    }, 1000 / samplesPerSecond)
+      this.tickData.previous.velocity = this.tickData.mediumVel;
   }
 
+  _calculateNewMediumVelocity(currentVelocity: number) {
+    return this.tickData.previous.velocity == 0 ? Math.floor(currentVelocity) : ((this.tickData.mediumVel + currentVelocity * 2) / 3);
+  }
 
   stopClock() {
     if (!this.acceleratorInterval) {
@@ -179,8 +188,6 @@ class ValueSlider {
         cursor: 'ns-resize',
         // 'user-select': 'none'
       });
-
-      element.compensate = 0;
 
       handles[handleName] = element;
     });
