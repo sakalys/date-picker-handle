@@ -167,7 +167,7 @@ class ValueSlider {
         this.tickData.previous.position = currentPosition;
         // handle.pixelsMoved = handle.pixelsMoved + diff;
         this._throttleUpdate(() => {
-            // this.tickData.handle.updated(Math.floor(handle.pixelsMoved / this.divider));
+            this.tickData.handle.updated(Math.floor(this.tickData.mediumVel));
             this._updateText();
         });
         this.tickData.previous.velocity = this.tickData.mediumVel;
@@ -206,24 +206,18 @@ class ValueSlider {
         val = parseInt(yearText);
         year.pixelsMoved = Math.floor(val * this.divider);
         year.updated = (newVal) => {
-            this.date.setFullYear(newVal);
+            this.date.setFullYear(this.date.getFullYear() + newVal);
         };
         // MONTH
         val = parseInt(monthText);
         month.pixelsMoved = Math.floor(val * this.divider);
         month.updated = (newVal) => {
-            if (newVal < 1) {
-                month.compensate = -1;
-            }
-            else if (newVal > 12) {
-                month.compensate = 1;
-            }
-            this.date.setMonth(newVal - 1);
+            this.date.setMonth(this.date.getMonth() + newVal);
         };
         val = parseInt(dayText);
         day.pixelsMoved = Math.floor(val * this.divider);
         day.updated = (newVal) => {
-            this.date.setDate(newVal);
+            this.date.setDate(this.date.getDate() + newVal);
         };
         return handles;
     }
